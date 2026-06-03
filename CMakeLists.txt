@@ -69,6 +69,13 @@ set(BTCPP_GROOT_INTERFACE ON  CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(behaviortree_cpp googletest cpp_httplib nlohmann_json)
 
+# BT.CPP 4.6.2: minitrace is linked into behaviortree_cpp but omitted from the
+# install export set, causing cmake to fail its generate step with exit code 1.
+# Adding it here fixes the export and lets cmake exit cleanly.
+if(TARGET minitrace)
+    install(TARGETS minitrace EXPORT behaviortree_cppTargets)
+endif()
+
 add_subdirectory(libs/world_sim)
 add_subdirectory(libs/bt_nodes)
 add_subdirectory(libs/llm_client)
