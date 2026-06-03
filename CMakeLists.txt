@@ -8,20 +8,17 @@ include(FetchContent)
 
 # libzmq — required for BT.CPP Groot2Publisher
 # Build as static to avoid shared-library deployment issues.
-# CMAKE_POLICY_VERSION_MINIMUM=3.5 is needed because libzmq v4.3.5 uses
-# cmake_minimum_required(VERSION 2.8.x) which is rejected by CMake 4.x.
 FetchContent_Declare(
     libzmq
     GIT_REPOSITORY https://github.com/zeromq/libzmq.git
     GIT_TAG        v4.3.5
-    CMAKE_ARGS     -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 )
 set(BUILD_SHARED OFF CACHE BOOL "" FORCE)
 set(BUILD_STATIC ON  CACHE BOOL "" FORCE)
 set(WITH_PERF_TOOL OFF CACHE BOOL "" FORCE)
 set(ZMQ_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(ENABLE_CPACK OFF CACHE BOOL "" FORCE)
-# Allow CMake 4.x to configure libzmq (which has old cmake_minimum_required)
+# CMake 4.x rejects cmake_minimum_required < 3.5 — temporarily allow it for libzmq v4.3.5
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "" FORCE)
 FetchContent_MakeAvailable(libzmq)
 unset(CMAKE_POLICY_VERSION_MINIMUM CACHE)
