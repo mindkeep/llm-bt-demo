@@ -37,5 +37,5 @@ TEST_F(LLMIntegrationTest, StackingGoalProducesValidXML) {
 TEST_F(LLMIntegrationTest, GeneratedXMLIsLoadableIntoFactory) {
     BTXMLRepairAgent agent(llm, validator, factory);
     auto xml = agent.get_valid_xml("Pick up object A and place it at TableB");
-    EXPECT_NO_THROW(factory.createTreeFromText(xml));
+    EXPECT_NO_THROW({ auto tree = factory.createTreeFromText(xml); (void)tree; });
 }
