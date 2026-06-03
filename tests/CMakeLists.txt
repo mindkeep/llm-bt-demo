@@ -1,0 +1,17 @@
+include(GoogleTest)
+
+add_executable(test_world_sim test_world_sim.cpp)
+target_link_libraries(test_world_sim PRIVATE world_sim_lib GTest::gtest_main)
+gtest_discover_tests(test_world_sim)
+
+add_executable(test_bt_nodes test_bt_nodes.cpp)
+target_link_libraries(test_bt_nodes PRIVATE bt_nodes_lib GTest::gtest_main)
+gtest_discover_tests(test_bt_nodes)
+
+add_executable(test_llm_client test_llm_client.cpp)
+target_link_libraries(test_llm_client PRIVATE llm_client_lib bt_nodes_lib GTest::gtest_main)
+gtest_discover_tests(test_llm_client)
+
+add_executable(test_llm_integration test_llm_integration.cpp)
+target_link_libraries(test_llm_integration PRIVATE llm_client_lib bt_nodes_lib GTest::gtest_main)
+gtest_discover_tests(test_llm_integration)
