@@ -57,7 +57,7 @@ export OPENAI_BASE_URL=http://tonfa:11434/v1
 git clone https://github.com/ggml-org/llama.cpp
 cd llama.cpp
 cmake -B build -DLLAMA_CURL=ON
-cmake --build build -j$(nproc) --target llama-server
+make -C build -j$(nproc) llama-server
 ```
 
 Add `-DGGML_CUDA=ON` or `-DGGML_METAL=ON` if you have a GPU.

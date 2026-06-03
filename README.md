@@ -67,7 +67,7 @@ git clone <repo-url>
 cd llm-bt-demo
 
 cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j$(nproc)
+make -C build -j$(nproc)
 ```
 
 First build fetches all dependencies (~3–5 min depending on network speed). Subsequent builds are fast.
@@ -128,7 +128,7 @@ On Linux, `host.docker.internal` requires `--add-host=host.docker.internal:host-
 ## Testing
 
 ```bash
-cmake --build build -j$(nproc)
+make -C build -j$(nproc)
 ctest --test-dir build -V
 ```
 
