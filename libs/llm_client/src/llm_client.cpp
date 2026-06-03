@@ -14,13 +14,21 @@ LLMClient::LLMClient()
     : base_url_(env_or("OPENAI_BASE_URL", "http://localhost:11434/v1"))
     , api_key_(env_or("OPENAI_API_KEY", ""))
     , model_(env_or("LLM_MODEL", "llama3.2"))
-{}
+{
+    if (!base_url_.empty() && base_url_.back() == '/') {
+        base_url_.pop_back();
+    }
+}
 
 LLMClient::LLMClient(std::string base_url, std::string api_key, std::string model)
     : base_url_(std::move(base_url))
     , api_key_(std::move(api_key))
     , model_(std::move(model))
-{}
+{
+    if (!base_url_.empty() && base_url_.back() == '/') {
+        base_url_.pop_back();
+    }
+}
 
 std::string LLMClient::origin() const {
     auto scheme_end = base_url_.find("://");
@@ -77,7 +85,7 @@ std::string LLMClient::complete(const std::string& user_message) {
     cli.set_connection_timeout(10);
     cli.set_read_timeout(60);
 
-    httplib::Headers headers = {{"Content-Type", "application/json"}};
+    httplib::Headers headers;
     if (!api_key_.empty()) {
         headers.insert({"Authorization", "Bearer " + api_key_});
     }
@@ -92,6 +100,16 @@ std::string LLMClient::complete(const std::string& user_message) {
         throw LLMConnectionError("HTTP " + std::to_string(res->status) + ": " + res->body);
     }
 
-    auto resp = nlohmann::json::parse(res->body);
-    return resp["choices"][0]["message"]["content"].get<std::string>();
+    nlohmann::json resp;
+    try {
+        resp = nlohmann::json::parse(res->body);
+    } catch (const nlohmann::json::exception& e) {
+        throw LLMConnectionError("invalid JSON response: " + std::string(e.what()));
+    }
+
+    try {
+        return resp.at("choices").at(0).at("message").at("content").get<std::string>();
+    } catch (const nlohmann::json::exception& e) {
+        throw LLMConnectionError("unexpected response structure: " + std::string(e.what()));
+    }
 }
