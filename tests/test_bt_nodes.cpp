@@ -78,3 +78,94 @@ TEST(Conditions, IsArmNearFails) {
 </root>)";
     EXPECT_EQ(tick_tree(xml, ws), BT::NodeStatus::FAILURE);
 }
+
+TEST(Actions, MoveArmToReturnsRunningThenSuccess) {
+    WorldState ws;
+    const char* xml = R"(
+<root BTCPP_format="4">
+  <BehaviorTree ID="T">
+    <MoveArmTo location="TableB"/>
+  </BehaviorTree>
+</root>)";
+    BT::BehaviorTreeFactory factory;
+    register_all_nodes(factory);
+    auto bb = BT::Blackboard::create();
+    bb->set("world_state", &ws);
+    auto tree = factory.createTreeFromText(xml, bb);
+
+    EXPECT_EQ(tree.tickOnce(), BT::NodeStatus::RUNNING);
+    EXPECT_EQ(tree.tickOnce(), BT::NodeStatus::SUCCESS);
+    EXPECT_EQ(ws.arm_position, WorldState::Location::TableB);
+}
+
+TEST(Actions, OpenGripperSucceeds) {
+    WorldState ws;
+    ws.gripper = WorldState::GripperState::Closed;
+    const char* xml = R"(
+<root BTCPP_format="4">
+  <BehaviorTree ID="T"><OpenGripper/></BehaviorTree>
+</root>)";
+    BT::BehaviorTreeFactory factory;
+    register_all_nodes(factory);
+    auto bb = BT::Blackboard::create();
+    bb->set("world_state", &ws);
+    auto tree = factory.createTreeFromText(xml, bb);
+
+    tree.tickOnce(); tree.tickOnce();
+    EXPECT_EQ(ws.gripper, WorldState::GripperState::Open);
+}
+
+TEST(Actions, CloseGripperSucceeds) {
+    WorldState ws;
+    const char* xml = R"(
+<root BTCPP_format="4">
+  <BehaviorTree ID="T"><CloseGripper/></BehaviorTree>
+</root>)";
+    BT::BehaviorTreeFactory factory;
+    register_all_nodes(factory);
+    auto bb = BT::Blackboard::create();
+    bb->set("world_state", &ws);
+    auto tree = factory.createTreeFromText(xml, bb);
+
+    tree.tickOnce(); tree.tickOnce();
+    EXPECT_EQ(ws.gripper, WorldState::GripperState::Closed);
+}
+
+TEST(Actions, PickObjectSetsHeld) {
+    WorldState ws;
+    ws.objects["ObjectA"] = {"ObjectA", WorldState::Location::TableA, false};
+    const char* xml = R"(
+<root BTCPP_format="4">
+  <BehaviorTree ID="T">
+    <PickObject object="ObjectA"/>
+  </BehaviorTree>
+</root>)";
+    BT::BehaviorTreeFactory factory;
+    register_all_nodes(factory);
+    auto bb = BT::Blackboard::create();
+    bb->set("world_state", &ws);
+    auto tree = factory.createTreeFromText(xml, bb);
+
+    tree.tickOnce(); tree.tickOnce();
+    EXPECT_TRUE(ws.objects.at("ObjectA").held);
+}
+
+TEST(Actions, PlaceObjectUpdatesLocation) {
+    WorldState ws;
+    ws.objects["ObjectA"] = {"ObjectA", WorldState::Location::ArmReach, true};
+    const char* xml = R"(
+<root BTCPP_format="4">
+  <BehaviorTree ID="T">
+    <PlaceObject object="ObjectA" location="TableC"/>
+  </BehaviorTree>
+</root>)";
+    BT::BehaviorTreeFactory factory;
+    register_all_nodes(factory);
+    auto bb = BT::Blackboard::create();
+    bb->set("world_state", &ws);
+    auto tree = factory.createTreeFromText(xml, bb);
+
+    tree.tickOnce(); tree.tickOnce();
+    EXPECT_EQ(ws.objects.at("ObjectA").location, WorldState::Location::TableC);
+    EXPECT_FALSE(ws.objects.at("ObjectA").held);
+}
