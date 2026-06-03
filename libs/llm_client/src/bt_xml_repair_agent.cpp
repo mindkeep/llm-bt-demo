@@ -39,6 +39,9 @@ std::string BTXMLRepairAgent::get_valid_xml(const std::string& goal) {
     }
 
     std::string error_summary;
-    for (const auto& e : last_errors) error_summary += e + "; ";
+    for (size_t i = 0; i < last_errors.size(); ++i) {
+        if (i > 0) error_summary += "; ";
+        error_summary += last_errors[i];
+    }
     throw BTXMLParseError(error_summary, last_xml);
 }
