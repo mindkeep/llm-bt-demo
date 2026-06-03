@@ -3,6 +3,7 @@
 #include <chrono>
 
 #include "behaviortree_cpp/bt_factory.h"
+#include "behaviortree_cpp/loggers/groot2_publisher.h"
 #include "bt_nodes/registry.hpp"
 #include "world_sim/world_state.hpp"
 
@@ -34,6 +35,10 @@ int main() {
     blackboard->set("world_state", &world);
 
     auto tree = factory.createTreeFromText(HARDCODED_XML, blackboard);
+
+    BT::Groot2Publisher publisher(tree, 1667);
+    std::cout << "Groot2 publisher active on port 1667.\n";
+    std::cout << "Open Groot2 and connect to localhost:1667 to visualize.\n";
 
     std::cout << "Executing hardcoded pick-and-place tree...\n";
 

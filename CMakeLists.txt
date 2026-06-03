@@ -6,13 +6,36 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
 
+# libzmq — required for BT.CPP Groot2Publisher
+# Build as static to avoid shared-library deployment issues.
+# CMAKE_POLICY_VERSION_MINIMUM=3.5 is needed because libzmq v4.3.5 uses
+# cmake_minimum_required(VERSION 2.8.x) which is rejected by CMake 4.x.
+FetchContent_Declare(
+    libzmq
+    GIT_REPOSITORY https://github.com/zeromq/libzmq.git
+    GIT_TAG        v4.3.5
+    CMAKE_ARGS     -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+)
+set(BUILD_SHARED OFF CACHE BOOL "" FORCE)
+set(BUILD_STATIC ON  CACHE BOOL "" FORCE)
+set(WITH_PERF_TOOL OFF CACHE BOOL "" FORCE)
+set(ZMQ_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ENABLE_CPACK OFF CACHE BOOL "" FORCE)
+# Allow CMake 4.x to configure libzmq (which has old cmake_minimum_required)
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "" FORCE)
+FetchContent_MakeAvailable(libzmq)
+unset(CMAKE_POLICY_VERSION_MINIMUM CACHE)
+
 # BehaviorTree.CPP v4
-# PATCH_COMMAND fixes a typo in bundled lexy (operator< uses _colum_nr instead of _column_nr)
+# PATCH_COMMAND applies two fixes:
+#   1. lexy typo (operator< uses _colum_nr instead of _column_nr)
+#   2. conan_build.cmake ZeroMQ: prefer FetchContent target over find_package
 FetchContent_Declare(
     behaviortree_cpp
     GIT_REPOSITORY https://github.com/BehaviorTree/BehaviorTree.CPP.git
     GIT_TAG        4.6.2
     PATCH_COMMAND  ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/patches/fix_lexy_typo.cmake
+              COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/patches/fix_conan_zmq.cmake
 )
 
 # Google Test
@@ -44,6 +67,8 @@ set(BTCPP_EXAMPLES        OFF CACHE BOOL "" FORCE)
 set(BTCPP_UNIT_TESTS      OFF CACHE BOOL "" FORCE)
 set(BTCPP_BUILD_TOOLS     OFF CACHE BOOL "" FORCE)
 set(BTCPP_SHARED_LIBS     OFF CACHE BOOL "" FORCE)
+# Enable Groot2 publisher (libzmq is provided via FetchContent above)
+set(BTCPP_GROOT_INTERFACE ON  CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(behaviortree_cpp googletest cpp_httplib nlohmann_json)
 
