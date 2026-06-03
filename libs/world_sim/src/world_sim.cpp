@@ -21,16 +21,18 @@ void pick_object(WorldState& ws, const std::string& name) {
     if (already_holding) {
         throw std::logic_error("Cannot pick object: already holding one");
     }
-    ws.objects.at(name).held = true;
-    ws.objects.at(name).location = WorldState::Location::ArmReach;
+    auto& obj = ws.objects.at(name);
+    obj.held = true;
+    obj.location = WorldState::Location::ArmReach;
 }
 
 void place_object(WorldState& ws, const std::string& name, WorldState::Location location) {
     if (!ws.objects.at(name).held) {
         throw std::logic_error("Cannot place object: not currently held");
     }
-    ws.objects.at(name).held = false;
-    ws.objects.at(name).location = location;
+    auto& obj = ws.objects.at(name);
+    obj.held = false;
+    obj.location = location;
 }
 
 } // namespace WorldSim

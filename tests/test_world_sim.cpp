@@ -87,3 +87,12 @@ TEST(WorldSim, PlaceObjectThrowsIfNotHeld) {
 
     EXPECT_THROW(WorldSim::place_object(ws, "ObjectA", WorldState::Location::TableC), std::logic_error);
 }
+
+TEST(WorldSim, LocationFromStringMapsAllValues) {
+    EXPECT_EQ(location_from_string("TableA"),   WorldState::Location::TableA);
+    EXPECT_EQ(location_from_string("TableB"),   WorldState::Location::TableB);
+    EXPECT_EQ(location_from_string("TableC"),   WorldState::Location::TableC);
+    EXPECT_EQ(location_from_string("ArmReach"), WorldState::Location::ArmReach);
+    EXPECT_EQ(location_from_string("garbage"),  WorldState::Location::Unknown);
+    EXPECT_EQ(location_from_string(""),         WorldState::Location::Unknown);
+}
