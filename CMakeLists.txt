@@ -39,7 +39,6 @@ FetchContent_Declare(
 set(FETCHCONTENT_QUIET OFF)
 
 # Disable optional BehaviorTree.CPP features that require extra system deps
-set(BTCPP_GROOT_INTERFACE OFF CACHE BOOL "" FORCE)
 set(BTCPP_SQLITE_LOGGING  OFF CACHE BOOL "" FORCE)
 set(BTCPP_EXAMPLES        OFF CACHE BOOL "" FORCE)
 set(BTCPP_UNIT_TESTS      OFF CACHE BOOL "" FORCE)
