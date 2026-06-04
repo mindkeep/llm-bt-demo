@@ -33,10 +33,20 @@ bool BTTaskAgent::execute_goal(const std::string& goal, WorldState& world) {
 
             xml = repair_agent_.get_valid_xml(current_prompt);
         } catch (const BTXMLParseError& e) {
-            std::cerr << "Failed to get valid BT XML after retries.\n" << e.what() << "\n";
+            std::cerr << "\nXML error: " << e.what() << "\n";
             if (!e.raw_xml.empty())
                 std::cerr << "Last XML:\n" << e.raw_xml << "\n";
-            return false;
+
+            if (attempt >= max_retries_) {
+                std::cerr << "Giving up after " << max_retries_ << " recovery attempt"
+                          << (max_retries_ == 1 ? "" : "s") << ".\n";
+                return false;
+            }
+
+            std::cout << "Attempting recovery (" << (attempt + 1) << "/"
+                      << max_retries_ << ")...\n";
+            current_prompt = build_xml_error_prompt(goal, e.what(), e.raw_xml, world);
+            continue;
         } catch (const LLMConnectionError& e) {
             std::cerr << e.what() << "\n";
             return false;
@@ -118,6 +128,26 @@ std::string BTTaskAgent::world_state_to_string(const WorldState& ws) {
         s += "\n";
     }
     return s;
+}
+
+std::string BTTaskAgent::build_xml_error_prompt(const std::string& goal,
+                                                const std::string& error,
+                                                const std::string& raw_xml,
+                                                const WorldState& world) {
+    std::string prompt =
+        "The previous attempt to generate a valid behavior tree failed.\n\n"
+        "Original goal: \"" + goal + "\"\n\n"
+        "XML error: " + error + "\n\n";
+
+    if (!raw_xml.empty())
+        prompt += "Invalid XML produced:\n" + raw_xml + "\n\n";
+
+    prompt +=
+        "Current world state:\n" + world_state_to_string(world) + "\n"
+        "Generate a valid behavior tree using ONLY the nodes listed in the system prompt.\n"
+        "Do NOT use nodes that are not available (e.g. If, While, Loop, Switch).";
+
+    return prompt;
 }
 
 std::string BTTaskAgent::build_recovery_prompt(const std::string& goal,

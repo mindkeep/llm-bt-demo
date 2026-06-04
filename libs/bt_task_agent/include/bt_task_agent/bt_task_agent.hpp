@@ -41,4 +41,10 @@ private:
                                              const std::string& xml,
                                              const std::string& error,
                                              const WorldState& state_after);
+
+    // Builds the recovery prompt sent to the LLM after XML parse/validation failure.
+    static std::string build_xml_error_prompt(const std::string& goal,
+                                              const std::string& error,
+                                              const std::string& raw_xml,
+                                              const WorldState& world);
 };

@@ -18,6 +18,18 @@ static constexpr const char* GOOD_XML = R"(
   </BehaviorTree>
 </root>)";
 
+// XML with an unregistered node: triggers BTXMLParseError after BTXMLRepairAgent retries.
+static constexpr const char* UNKNOWN_NODE_XML = R"(
+<root BTCPP_format="4">
+  <BehaviorTree ID="Main">
+    <Sequence>
+      <If condition="IsObjectAt object=ObjectA location=TableA">
+        <MoveArmTo location="TableA"/>
+      </If>
+    </Sequence>
+  </BehaviorTree>
+</root>)";
+
 // XML that throws at runtime: PlaceObject on an object that is not held.
 static constexpr const char* THROW_XML = R"(
 <root BTCPP_format="4">
@@ -90,6 +102,31 @@ TEST_F(BTTaskAgentTest, GivesUpAfterMaxRetries) {
 
     WorldState world = make_world();
     EXPECT_FALSE(agent.execute_goal("move ObjectA to TableB", world));
+    EXPECT_EQ(fake_llm.call_count, 4);
+}
+
+TEST_F(BTTaskAgentTest, RetriesOnXMLErrorAndSucceeds) {
+    // BTXMLRepairAgent(max_retries=1) exhausts on UNKNOWN_NODE_XML and throws
+    // BTXMLParseError. BTTaskAgent catches it, feeds the error back to the LLM,
+    // and the second attempt returns GOOD_XML.
+    fake_llm.responses = {UNKNOWN_NODE_XML, GOOD_XML};
+    BTXMLRepairAgent repair(fake_llm, validator, factory, /*max_retries=*/1);
+    BTTaskAgent agent(repair, factory, /*max_retries=*/3, /*groot2_port=*/0);
+
+    WorldState world = make_world();
+    EXPECT_TRUE(agent.execute_goal("rotate all objects", world));
+    EXPECT_EQ(fake_llm.call_count, 2);
+}
+
+TEST_F(BTTaskAgentTest, GivesUpAfterMaxXMLRetries) {
+    // All four attempts (initial + 3 retries) produce unrecognised nodes.
+    fake_llm.responses = {UNKNOWN_NODE_XML, UNKNOWN_NODE_XML,
+                          UNKNOWN_NODE_XML, UNKNOWN_NODE_XML};
+    BTXMLRepairAgent repair(fake_llm, validator, factory, /*max_retries=*/1);
+    BTTaskAgent agent(repair, factory, /*max_retries=*/3, /*groot2_port=*/0);
+
+    WorldState world = make_world();
+    EXPECT_FALSE(agent.execute_goal("rotate all objects", world));
     EXPECT_EQ(fake_llm.call_count, 4);
 }
 
