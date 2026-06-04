@@ -67,7 +67,8 @@ DECORATORS (BT.CPP built-ins):
   <Retry num_attempts="N"> <Timeout msec="N">
 
 Rules:
-- Output a single <root> element with one <BehaviorTree ID="Main"> child.
+- The <root> element MUST have the attribute BTCPP_format="4". Example: <root BTCPP_format="4">
+- Output a single <root BTCPP_format="4"> element with one <BehaviorTree ID="Main"> child.
 - No markdown, no explanation, no code fences. XML only.)";
 }
 
