@@ -79,6 +79,14 @@ if(TARGET minitrace)
     install(TARGETS minitrace EXPORT behaviortree_cppTargets)
 endif()
 
+# BT.CPP 4.6.2 + lexy triggers cascading false-positive warnings on GCC 12+
+# (Wdangling-pointer, Wmaybe-uninitialized, etc.) from complex template
+# instantiations in the scripting parser. Suppress all warnings on this
+# third-party target — we cannot fix upstream code.
+if(TARGET behaviortree_cpp)
+    target_compile_options(behaviortree_cpp PRIVATE -w)
+endif()
+
 add_subdirectory(libs/world_sim)
 add_subdirectory(libs/bt_nodes)
 add_subdirectory(libs/llm_client)
