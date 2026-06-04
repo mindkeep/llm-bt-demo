@@ -90,13 +90,12 @@ endif()
 add_subdirectory(libs/world_sim)
 add_subdirectory(libs/bt_nodes)
 add_subdirectory(libs/llm_client)
+add_subdirectory(libs/bt_task_agent)
 
 add_executable(llm_bt_demo src/main.cpp)
 target_link_libraries(llm_bt_demo PRIVATE
-    world_sim_lib
     bt_nodes_lib
-    llm_client_lib
-    behaviortree_cpp
+    bt_task_agent_lib
 )
 target_include_directories(llm_bt_demo PRIVATE src)
 

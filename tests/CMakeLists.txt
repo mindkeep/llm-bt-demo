@@ -17,6 +17,10 @@ add_executable(test_llm_client test_llm_client.cpp)
 target_link_libraries(test_llm_client PRIVATE llm_client_lib bt_nodes_lib GTest::gtest_main)
 gtest_discover_tests(test_llm_client DISCOVERY_MODE PRE_TEST)
 
+add_executable(test_bt_task_agent test_bt_task_agent.cpp)
+target_link_libraries(test_bt_task_agent PRIVATE bt_task_agent_lib bt_nodes_lib GTest::gtest_main)
+gtest_discover_tests(test_bt_task_agent DISCOVERY_MODE PRE_TEST)
+
 add_executable(test_llm_integration test_llm_integration.cpp)
 target_link_libraries(test_llm_integration PRIVATE llm_client_lib bt_nodes_lib GTest::gtest_main)
 gtest_discover_tests(test_llm_integration DISCOVERY_MODE PRE_TEST)

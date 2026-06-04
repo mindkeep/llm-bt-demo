@@ -67,20 +67,18 @@ llm-bt-demo/
 user input (goal string)
       │
       ▼
-  llm_client  ──POST /v1/chat/completions──►  Ollama / OpenAI / llama.cpp
-      │  ◄── BT XML string ──────────────────
-      │
+  BTXMLRepairAgent::get_valid_xml()
+      ├─► LLMClient  ──POST /v1/chat/completions──►  Ollama / OpenAI / llama.cpp
+      │       ◄── BT XML string ──────────────────
       ├─► BTXMLValidator  — checks node names against registered factory
-      ├─► BTXMLRepairAgent — re-prompts with error list, up to 3 retries
+      └─► on failure: re-prompt with error list, up to 3 retries
       │
       ▼
-  BT.CPP Factory  ──loads XML──►  BehaviorTree
-      │
-      ▼
-  tick loop  ──reads/writes──►  WorldState
-      │
-      ▼
-  Groot2 (ZeroMQ publisher, port 1667)
+  BTTaskAgent::execute_goal()
+      ├─► BT.CPP Factory  ──loads XML──►  BehaviorTree
+      ├─► tick loop  ──reads/writes──►  WorldState
+      ├─► Groot2 (ZeroMQ publisher, port 1667)
+      └─► on std::exception: snapshot state, build recovery prompt, retry up to 3×
 ```
 
 ---
@@ -159,6 +157,19 @@ Parses the LLM response string using BT.CPP's own XML parser. Checks all node na
 
 **`BTXMLRepairAgent`**  
 If validation fails, sends a follow-up LLM call with the original goal plus the error list injected into the prompt. Retries up to 3 times. After 3 failures throws `BTXMLParseError` with the last error list and raw XML attached.
+
+## BT Task Agent (`bt_task_agent`)
+
+**`BTTaskAgent`**  
+Orchestrates the full execution cycle. Given a goal string and a mutable `WorldState`, it calls `BTXMLRepairAgent::get_valid_xml()`, loads the tree, ticks it to completion, and handles runtime failures:
+
+1. Snapshots `WorldState` before each execution attempt.
+2. Wraps the tick loop in a `try/catch(std::exception)`.
+3. On failure (exception or FAILURE status), builds a structured recovery prompt containing: original goal, world state before the attempt, the attempted XML, the error message, and the current (partially-modified) world state.
+4. Passes the recovery prompt back through `BTXMLRepairAgent` and retries.
+5. After `max_retries` (default 3) exhausted, returns `false`.
+
+`groot2_port=0` disables the ZMQ publisher, used in unit tests to avoid port binding.
 
 ---
 
