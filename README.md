@@ -3,26 +3,36 @@
 A simulated robot arm that receives a natural language goal, uses an LLM to decompose it into a behavior tree plan, executes the plan against a simulated environment, and visualizes the running tree in real time via [Groot2](https://www.behaviortree.dev/groot/).
 
 ```
-$ ./build/llm_bt_demo "Pick up object A and move it to location C"
+$ ./build/llm_bt_demo
+LLM Robot Task Planner  (type /exit or Ctrl-D to quit)
 
+--- World State ---
+Gripper:  Open
+Arm:      Unknown
+Objects:
+  ObjectA  @ TableA
+  ObjectB  @ TableB
+  ObjectC  @ TableC
+-------------------
+
+Goal> Pick up object A and move it to location C
 Sending goal to LLM: "Pick up object A and move it to location C"
-Generated BT XML:
-<root BTCPP_format="4">
-  <BehaviorTree ID="Main">
-    <Sequence>
-      <MoveArmTo location="TableA"/>
-      <OpenGripper/>
-      <PickObject object="ObjectA"/>
-      <CloseGripper/>
-      <MoveArmTo location="TableC"/>
-      <OpenGripper/>
-      <PlaceObject object="ObjectA" location="TableC"/>
-    </Sequence>
-  </BehaviorTree>
-</root>
+Generated BT XML: ...
 
 Executing tree... (connect Groot2 to localhost:1667)
 Tree finished: SUCCESS
+
+--- World State ---
+Gripper:  Open
+Arm:      TableC
+Objects:
+  ObjectA  @ TableC
+  ObjectB  @ TableB
+  ObjectC  @ TableC
+-------------------
+
+Goal> /exit
+Goodbye.
 ```
 
 ---
@@ -88,20 +98,32 @@ You need an OpenAI-compatible LLM endpoint. See **[docs/local-model-setup.md](do
 |---|---|---|
 | `OPENAI_BASE_URL` | `http://localhost:11434/v1` | API endpoint (Ollama, llama.cpp, OpenAI, etc.) |
 | `OPENAI_API_KEY` | *(empty)* | Bearer token — Ollama ignores it; required for OpenAI |
-| `LLM_MODEL` | `llama3.2` | Model name passed in the request body |
+| `LLM_MODEL` | `granite4.1:3b-q8_0` | Model name passed in the request body |
 
-### Example
+### Interactive session (default)
 
 ```bash
 export OPENAI_BASE_URL=http://localhost:11434/v1
-export LLM_MODEL=llama3.2
+export LLM_MODEL=granite4.1:3b-q8_0
 
+./build/llm_bt_demo
+```
+
+Type goals at the `Goal>` prompt. The world state persists between goals, so each command builds on the previous one. Type `/exit` or press Ctrl-D to quit. Ctrl-C also exits cleanly.
+
+### Single-shot mode
+
+Pass the goal as an argument to run once and exit — useful for scripts and containers:
+
+```bash
 ./build/llm_bt_demo "Pick up object A and move it to location C"
 ```
 
+Exits with code `0` on success, `1` on error.
+
 ### Visualizing with Groot2
 
-While the tree is running, open [Groot2](https://www.behaviortree.dev/groot/) and connect to `localhost:1667`. Node states are highlighted in real time as the tree ticks.
+While a tree is executing, open [Groot2](https://www.behaviortree.dev/groot/) and connect to `localhost:1667`. Node states are highlighted in real time as the tree ticks.
 
 ---
 
@@ -112,11 +134,11 @@ Build:
 podman build -f docker/Dockerfile -t llm-bt-demo .
 ```
 
-Run (with Ollama on the host):
+Run in single-shot mode (with Ollama on the host):
 ```bash
 podman run --rm \
   -e OPENAI_BASE_URL=http://host.docker.internal:11434/v1 \
-  -e LLM_MODEL=llama3.2 \
+  -e LLM_MODEL=granite4.1:3b-q8_0 \
   -p 1667:1667 \
   llm-bt-demo "Pick up object A and move it to location C"
 ```
@@ -144,7 +166,7 @@ ctest --test-dir build -V
 To run integration tests with a live model:
 ```bash
 export OPENAI_BASE_URL=http://localhost:11434/v1
-export LLM_MODEL=llama3.2
+export LLM_MODEL=granite4.1:3b-q8_0
 ctest --test-dir build -R "LLMIntegration" -V
 ```
 

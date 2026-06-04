@@ -20,7 +20,7 @@ Small models (3–8B) work well for structured XML output. Granite and Llama are
 
 ```bash
 ollama pull granite3.1:3b
-ollama pull llama3.2
+ollama pull granite4.1:3b-q8_0
 ```
 
 ### Run
@@ -35,7 +35,7 @@ ollama serve
 
 ```bash
 export OPENAI_BASE_URL=http://localhost:11434/v1
-export LLM_MODEL=granite3.1:3b   # or whatever you pulled
+export LLM_MODEL=granite4.1:3b-q8_0   # or whatever you pulled
 # OPENAI_API_KEY not needed — Ollama ignores it
 
 ./build/llm_bt_demo "Pick up object A and move it to location C"
@@ -103,7 +103,7 @@ The live LLM integration tests skip automatically when `OPENAI_BASE_URL` is not 
 
 ```bash
 export OPENAI_BASE_URL=http://localhost:11434/v1
-export LLM_MODEL=granite3.1:3b
+export LLM_MODEL=granite4.1:3b-q8_0
 
 ctest --test-dir build -R "LLMIntegration" -V
 ```
