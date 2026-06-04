@@ -19,3 +19,13 @@ inline WorldState::Location location_from_string(std::string_view s) {
     if (s == "ArmReach") return WorldState::Location::ArmReach;
     return WorldState::Location::Unknown;
 }
+
+inline std::string_view location_to_string(WorldState::Location loc) {
+    switch (loc) {
+        case WorldState::Location::TableA:   return "TableA";
+        case WorldState::Location::TableB:   return "TableB";
+        case WorldState::Location::TableC:   return "TableC";
+        case WorldState::Location::ArmReach: return "ArmReach";
+        default:                             return "Unknown";
+    }
+}
