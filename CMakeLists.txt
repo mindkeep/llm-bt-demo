@@ -8,10 +8,12 @@ include(FetchContent)
 
 # libzmq — required for BT.CPP Groot2Publisher
 # Build as static to avoid shared-library deployment issues.
+# PATCH_COMMAND: fixes cmake_minimum_required (< 3.10 warns on cmake 4.x)
 FetchContent_Declare(
     libzmq
     GIT_REPOSITORY https://github.com/zeromq/libzmq.git
     GIT_TAG        v4.3.5
+    PATCH_COMMAND  ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/patches/fix_zmq_cmake_min.cmake
 )
 set(BUILD_SHARED OFF CACHE BOOL "" FORCE)
 set(BUILD_STATIC ON  CACHE BOOL "" FORCE)
@@ -24,9 +26,10 @@ FetchContent_MakeAvailable(libzmq)
 unset(CMAKE_POLICY_VERSION_MINIMUM CACHE)
 
 # BehaviorTree.CPP v4
-# PATCH_COMMAND applies two fixes:
+# PATCH_COMMAND applies three fixes:
 #   1. lexy typo (operator< uses _colum_nr instead of _column_nr)
-#   2. conan_build.cmake ZeroMQ: prefer FetchContent target over find_package
+#   2. lexy cmake_minimum_required 3.8 → 3.10 (warns on cmake 4.x)
+#   3. conan_build.cmake ZeroMQ: prefer FetchContent target over find_package
 FetchContent_Declare(
     behaviortree_cpp
     GIT_REPOSITORY https://github.com/BehaviorTree/BehaviorTree.CPP.git
