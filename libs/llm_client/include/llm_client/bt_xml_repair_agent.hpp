@@ -1,4 +1,5 @@
 #pragma once
+#include <span>
 #include <string>
 #include "behaviortree_cpp/bt_factory.h"
 #include "llm_client/llm_client.hpp"
@@ -23,5 +24,5 @@ private:
 
     std::string repair_prompt(const std::string& goal,
                               const std::string& bad_xml,
-                              const std::vector<std::string>& errors) const;
+                              std::span<const std::string> errors) const;
 };

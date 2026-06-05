@@ -57,9 +57,9 @@ static BT::BehaviorTreeFactory make_factory() {
 
 static WorldState make_world() {
     WorldState ws;
-    ws.objects["ObjectA"] = {"ObjectA", WorldState::Location::TableA, false};
-    ws.objects["ObjectB"] = {"ObjectB", WorldState::Location::TableB, false};
-    ws.objects["ObjectC"] = {"ObjectC", WorldState::Location::TableC, false};
+    ws.objects["ObjectA"] = {.name = "ObjectA", .location = WorldState::Location::TableA};
+    ws.objects["ObjectB"] = {.name = "ObjectB", .location = WorldState::Location::TableB};
+    ws.objects["ObjectC"] = {.name = "ObjectC", .location = WorldState::Location::TableC};
     return ws;
 }
 
@@ -77,7 +77,7 @@ TEST_F(BTTaskAgentTest, SucceedsOnFirstAttempt) {
     BTTaskAgent agent(repair, factory, /*max_retries=*/3, /*groot2_port=*/0);
 
     WorldState world = make_world();
-    EXPECT_TRUE(agent.execute_goal("move ObjectA to TableB", world));
+    EXPECT_NO_THROW(agent.execute_goal("move ObjectA to TableB", world));
     EXPECT_EQ(fake_llm.call_count, 1);
     EXPECT_EQ(world.objects.at("ObjectA").location, WorldState::Location::TableB);
 }
@@ -89,7 +89,7 @@ TEST_F(BTTaskAgentTest, RetriesOnRuntimeErrorAndSucceeds) {
     BTTaskAgent agent(repair, factory, /*max_retries=*/3, /*groot2_port=*/0);
 
     WorldState world = make_world();
-    EXPECT_TRUE(agent.execute_goal("move ObjectA to TableB", world));
+    EXPECT_NO_THROW(agent.execute_goal("move ObjectA to TableB", world));
     EXPECT_EQ(fake_llm.call_count, 2);
     EXPECT_EQ(world.objects.at("ObjectA").location, WorldState::Location::TableB);
 }
@@ -101,7 +101,7 @@ TEST_F(BTTaskAgentTest, GivesUpAfterMaxRetries) {
     BTTaskAgent agent(repair, factory, /*max_retries=*/3, /*groot2_port=*/0);
 
     WorldState world = make_world();
-    EXPECT_FALSE(agent.execute_goal("move ObjectA to TableB", world));
+    EXPECT_THROW(agent.execute_goal("move ObjectA to TableB", world), std::exception);
     EXPECT_EQ(fake_llm.call_count, 4);
 }
 
@@ -114,7 +114,7 @@ TEST_F(BTTaskAgentTest, RetriesOnXMLErrorAndSucceeds) {
     BTTaskAgent agent(repair, factory, /*max_retries=*/3, /*groot2_port=*/0);
 
     WorldState world = make_world();
-    EXPECT_TRUE(agent.execute_goal("rotate all objects", world));
+    EXPECT_NO_THROW(agent.execute_goal("rotate all objects", world));
     EXPECT_EQ(fake_llm.call_count, 2);
 }
 
@@ -126,7 +126,7 @@ TEST_F(BTTaskAgentTest, GivesUpAfterMaxXMLRetries) {
     BTTaskAgent agent(repair, factory, /*max_retries=*/3, /*groot2_port=*/0);
 
     WorldState world = make_world();
-    EXPECT_FALSE(agent.execute_goal("rotate all objects", world));
+    EXPECT_THROW(agent.execute_goal("rotate all objects", world), std::exception);
     EXPECT_EQ(fake_llm.call_count, 4);
 }
 
@@ -142,5 +142,5 @@ TEST_F(BTTaskAgentTest, PropagatesLLMConnectionError) {
     BTTaskAgent agent(repair, factory, /*max_retries=*/3, /*groot2_port=*/0);
 
     WorldState world = make_world();
-    EXPECT_FALSE(agent.execute_goal("move ObjectA to TableB", world));
+    EXPECT_THROW(agent.execute_goal("move ObjectA to TableB", world), LLMConnectionError);
 }

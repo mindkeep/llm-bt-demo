@@ -16,7 +16,7 @@ void close_gripper(WorldState& ws) {
 }
 
 void pick_object(WorldState& ws, const std::string& name) {
-    bool already_holding = std::any_of(ws.objects.begin(), ws.objects.end(),
+    bool already_holding = std::ranges::any_of(ws.objects,
         [](const auto& kv) { return kv.second.held; });
     if (already_holding) {
         throw std::logic_error("Cannot pick object: already holding one");

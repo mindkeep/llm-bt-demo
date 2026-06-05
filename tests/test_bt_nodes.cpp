@@ -33,7 +33,7 @@ TEST(Conditions, IsGripperOpenFailsWhenClosed) {
 
 TEST(Conditions, IsObjectAtSucceeds) {
     WorldState ws;
-    ws.objects["ObjectA"] = {"ObjectA", WorldState::Location::TableA, false};
+    ws.objects["ObjectA"] = {.name = "ObjectA", .location = WorldState::Location::TableA};
     const char* xml = R"(
 <root BTCPP_format="4">
   <BehaviorTree ID="T">
@@ -45,7 +45,7 @@ TEST(Conditions, IsObjectAtSucceeds) {
 
 TEST(Conditions, IsObjectAtFailsWrongLocation) {
     WorldState ws;
-    ws.objects["ObjectA"] = {"ObjectA", WorldState::Location::TableB, false};
+    ws.objects["ObjectA"] = {.name = "ObjectA", .location = WorldState::Location::TableB};
     const char* xml = R"(
 <root BTCPP_format="4">
   <BehaviorTree ID="T">
@@ -133,7 +133,7 @@ TEST(Actions, CloseGripperSucceeds) {
 
 TEST(Actions, PickObjectSetsHeld) {
     WorldState ws;
-    ws.objects["ObjectA"] = {"ObjectA", WorldState::Location::TableA, false};
+    ws.objects["ObjectA"] = {.name = "ObjectA", .location = WorldState::Location::TableA};
     const char* xml = R"(
 <root BTCPP_format="4">
   <BehaviorTree ID="T">
@@ -152,7 +152,7 @@ TEST(Actions, PickObjectSetsHeld) {
 
 TEST(Actions, PlaceObjectUpdatesLocation) {
     WorldState ws;
-    ws.objects["ObjectA"] = {"ObjectA", WorldState::Location::ArmReach, true};
+    ws.objects["ObjectA"] = {.name = "ObjectA", .location = WorldState::Location::ArmReach, .held = true};
     const char* xml = R"(
 <root BTCPP_format="4">
   <BehaviorTree ID="T">

@@ -18,9 +18,9 @@ public:
                 uint16_t groot2_port = 1667);
 
     // Attempts to achieve goal. World state is updated in-place.
-    // Returns true on success, false after all retries exhausted.
+    // Throws std::exception after all retries exhausted.
     // Progress and errors are printed to stdout/stderr.
-    [[nodiscard]] bool execute_goal(const std::string& goal, WorldState& world);
+    void execute_goal(const std::string& goal, WorldState& world);
 
 private:
     BTXMLRepairAgent& repair_agent_;
@@ -28,9 +28,8 @@ private:
     int max_retries_;
     uint16_t groot2_port_;
 
-    // Ticks tree to completion. Returns final status.
-    // On exception, sets runtime_error and returns RUNNING as a sentinel.
-    static BT::NodeStatus tick_tree(BT::Tree& tree, std::string& runtime_error);
+    // Ticks tree to completion. Throws std::exception on FAILURE status or node exception.
+    static void tick_tree(BT::Tree& tree);
 
     // Serialises world state into a compact, prompt-friendly string.
     static std::string world_state_to_string(const WorldState& ws);

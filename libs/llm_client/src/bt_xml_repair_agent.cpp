@@ -10,7 +10,7 @@ BTXMLRepairAgent::BTXMLRepairAgent(LLMClient& client,
 std::string BTXMLRepairAgent::repair_prompt(
     const std::string& goal,
     const std::string& bad_xml,
-    const std::vector<std::string>& errors) const
+    std::span<const std::string> errors) const
 {
     std::string prompt = "Goal: " + goal + "\n\n";
     prompt += "Your previous output was invalid. Errors:\n";
@@ -39,9 +39,9 @@ std::string BTXMLRepairAgent::get_valid_xml(const std::string& goal) {
     }
 
     std::string error_summary;
-    for (size_t i = 0; i < last_errors.size(); ++i) {
-        if (i > 0) error_summary += "; ";
-        error_summary += last_errors[i];
+    for (const auto& e : last_errors) {
+        if (!error_summary.empty()) error_summary += "; ";
+        error_summary += e;
     }
     throw BTXMLParseError(error_summary, last_xml);
 }

@@ -38,9 +38,9 @@ static void print_world_state(const WorldState& ws) {
 
 static WorldState make_initial_world() {
     WorldState world;
-    world.objects["ObjectA"] = {"ObjectA", WorldState::Location::TableA, false};
-    world.objects["ObjectB"] = {"ObjectB", WorldState::Location::TableB, false};
-    world.objects["ObjectC"] = {"ObjectC", WorldState::Location::TableC, false};
+    world.objects["ObjectA"] = {.name = "ObjectA", .location = WorldState::Location::TableA};
+    world.objects["ObjectB"] = {.name = "ObjectB", .location = WorldState::Location::TableB};
+    world.objects["ObjectC"] = {.name = "ObjectC", .location = WorldState::Location::TableC};
     return world;
 }
 
@@ -55,9 +55,14 @@ int main(int argc, char* argv[]) {
 
     if (argc >= 2) {
         WorldState world = make_initial_world();
-        const bool ok = agent.execute_goal(argv[1], world);
-        if (ok) print_world_state(world);
-        return ok ? 0 : 1;
+        try {
+            agent.execute_goal(argv[1], world);
+            print_world_state(world);
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << "\n";
+            return 1;
+        }
+        return 0;
     }
 
     std::signal(SIGINT, [](int) {
@@ -80,7 +85,11 @@ int main(int argc, char* argv[]) {
         if (goal == "/exit") { std::cout << "Goodbye.\n"; break; }
         if (goal.empty()) continue;
 
-        (void)agent.execute_goal(goal, world);
+        try {
+            agent.execute_goal(goal, world);
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << "\n";
+        }
     }
 
     return 0;
