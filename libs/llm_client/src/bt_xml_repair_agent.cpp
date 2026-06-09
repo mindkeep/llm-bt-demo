@@ -21,11 +21,16 @@ std::string BTXMLRepairAgent::repair_prompt(
     return prompt;
 }
 
+// Ask the LLM for a tree, validate it, and if it fails, ask again with the
+// errors attached. This is the first of two recovery tiers — it fixes XML the
+// model got syntactically wrong; BTTaskAgent handles trees that fail at runtime.
 std::string BTXMLRepairAgent::get_valid_xml(const std::string& goal) {
     std::string last_xml;
     std::vector<std::string> last_errors;
 
     for (int attempt = 0; attempt < max_retries_; ++attempt) {
+        // First attempt is the bare goal; later attempts include the previous
+        // bad XML and its validation errors so the model can self-correct.
         const std::string user_msg = (attempt == 0)
             ? "Goal: " + goal
             : repair_prompt(goal, last_xml, last_errors);

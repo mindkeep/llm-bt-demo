@@ -13,7 +13,7 @@ static std::string env_or(const char* name, const char* fallback) {
 LLMClient::LLMClient()
     : base_url_(env_or("OPENAI_BASE_URL", "http://localhost:11434/v1"))
     , api_key_(env_or("OPENAI_API_KEY", ""))
-    , model_(env_or("LLM_MODEL", "llama3.2"))
+    , model_(env_or("LLM_MODEL", "granite4.1:3b-q8_0"))
 {
     if (!base_url_.empty() && base_url_.back() == '/') {
         base_url_.pop_back();

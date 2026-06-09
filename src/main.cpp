@@ -1,3 +1,12 @@
+// CLI entry point — pure orchestration, no business logic.
+//
+// Wiring (dependencies flow downward):
+//   LLMClient ──► BTXMLRepairAgent ──► BTTaskAgent
+// The factory holds the registered node types; the agent generates a tree from
+// a natural-language goal, executes it against a WorldState, and recovers from
+// failures via the LLM. main() just builds those objects once and drives them
+// from either a single command-line goal or an interactive REPL.
+
 #include <iostream>
 #include <csignal>
 #include <string>
@@ -51,10 +60,17 @@ int main(int argc, char* argv[]) {
     BTXMLRepairAgent repair_agent(llm, factory);
     BTTaskAgent agent(repair_agent, factory);
 
+    // Single-shot mode: run one goal from argv and exit (scripts, containers).
     if (argc >= 2) {
+        const std::string arg = argv[1];
+        if (arg == "-h" || arg == "--help") {
+            print_usage();
+            return 0;
+        }
+
         WorldState world = make_initial_world();
         try {
-            agent.execute_goal(argv[1], world);
+            agent.execute_goal(arg, world);
             print_world_state(world);
         } catch (const std::exception& e) {
             std::cerr << e.what() << "\n";
@@ -68,6 +84,8 @@ int main(int argc, char* argv[]) {
         std::exit(0);
     });
 
+    // Interactive mode: the world persists across goals, so each command builds
+    // on the state left by the previous one.
     WorldState world = make_initial_world();
     std::cout << "LLM Robot Task Planner  (type /exit or Ctrl-D to quit)\n";
 

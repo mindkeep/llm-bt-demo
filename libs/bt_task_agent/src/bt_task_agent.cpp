@@ -18,6 +18,10 @@ BTTaskAgent::BTTaskAgent(BTXMLRepairAgent& repair_agent,
     , groot2_port_(groot2_port)
 {}
 
+// One retry loop, two failure modes. Each pass: (1) get valid XML from the
+// repair agent, (2) execute it. A failure in either step rebuilds current_prompt
+// with the relevant context and loops; success returns. After max_retries the
+// last exception propagates to the caller.
 void BTTaskAgent::execute_goal(const std::string& goal, WorldState& world) {
     std::string current_prompt = goal;
 
@@ -95,8 +99,12 @@ void BTTaskAgent::tick_tree(BT::Tree& tree) {
     BT::NodeStatus status = BT::NodeStatus::RUNNING;
     while (status == BT::NodeStatus::RUNNING) {
         status = tree.tickOnce();
+        // Pace the loop so a Groot2 viewer can show node transitions; nothing
+        // here is time-sensitive, the delay is purely for human-visible replay.
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
+    // Normalise FAILURE into an exception so execute_goal has a single recovery
+    // path: both a thrown node error and a plain FAILURE land in the same catch.
     if (status != BT::NodeStatus::SUCCESS)
         throw std::runtime_error("Tree returned FAILURE status");
 }

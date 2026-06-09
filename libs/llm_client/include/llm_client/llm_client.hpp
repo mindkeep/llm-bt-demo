@@ -1,10 +1,14 @@
 #pragma once
 #include <string>
 
+// Thin wrapper over an OpenAI-compatible /chat/completions endpoint (Ollama,
+// llama.cpp, OpenAI, ...). It owns the system prompt that constrains the model
+// to emit BT.CPP XML; callers supply only the user turn. virtual so tests can
+// subclass it with a FakeLLMClient that returns canned responses.
 class LLMClient {
 public:
     // Reads OPENAI_BASE_URL (default: http://localhost:11434/v1),
-    // OPENAI_API_KEY (default: empty), LLM_MODEL (default: llama3.2)
+    // OPENAI_API_KEY (default: empty), LLM_MODEL (default: granite4.1:3b-q8_0)
     LLMClient();
 
     // For testing: explicit configuration

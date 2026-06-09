@@ -1,6 +1,10 @@
 #include "world_sim/world_sim.hpp"
 #include <algorithm>
 
+// The only place WorldState is mutated. Each function enforces the physical
+// preconditions of the simulated arm (e.g. only one object held at a time) and
+// throws std::logic_error when violated. The BT nodes call these, and a thrown
+// error surfaces as a runtime failure that BTTaskAgent feeds back to the LLM.
 namespace WorldSim {
 
 void move_arm_to(WorldState& ws, WorldState::Location location) {
@@ -27,10 +31,10 @@ void pick_object(WorldState& ws, const std::string& name) {
 }
 
 void place_object(WorldState& ws, const std::string& name, WorldState::Location location) {
-    if (!ws.objects.at(name).held) {
+    auto& obj = ws.objects.at(name);
+    if (!obj.held) {
         throw std::logic_error("Cannot place object: not currently held");
     }
-    auto& obj = ws.objects.at(name);
     obj.held = false;
     obj.location = location;
 }
