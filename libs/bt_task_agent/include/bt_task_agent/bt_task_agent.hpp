@@ -34,6 +34,11 @@ private:
     // Serialises world state into a compact, prompt-friendly string.
     static std::string world_state_to_string(const WorldState& ws);
 
+    // First-attempt prompt: the goal plus current world state, so the model
+    // knows where each object starts and can move the arm to the right table.
+    static std::string build_initial_prompt(const std::string& goal,
+                                             const WorldState& world);
+
     // Builds the recovery prompt sent to the LLM after a runtime failure.
     static std::string build_recovery_prompt(const std::string& goal,
                                              const WorldState& state_before,

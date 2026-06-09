@@ -23,7 +23,7 @@ BTTaskAgent::BTTaskAgent(BTXMLRepairAgent& repair_agent,
 // with the relevant context and loops; success returns. After max_retries the
 // last exception propagates to the caller.
 void BTTaskAgent::execute_goal(const std::string& goal, WorldState& world) {
-    std::string current_prompt = goal;
+    std::string current_prompt = build_initial_prompt(goal, world);
 
     for (int attempt = 0; attempt <= max_retries_; ++attempt) {
         // --- Generate XML ---
@@ -124,6 +124,12 @@ std::string BTTaskAgent::world_state_to_string(const WorldState& ws) {
     return s;
 }
 
+std::string BTTaskAgent::build_initial_prompt(const std::string& goal,
+                                              const WorldState& world) {
+    // BTXMLRepairAgent prepends "Goal: " on the first attempt, so omit it here.
+    return goal + "\n\nCurrent world state:\n" + world_state_to_string(world);
+}
+
 std::string BTTaskAgent::build_xml_error_prompt(const std::string& goal,
                                                 const std::string& error,
                                                 const std::string& raw_xml,
@@ -156,5 +162,7 @@ std::string BTTaskAgent::build_recovery_prompt(const std::string& goal,
         "\nBT XML that was attempted:\n" + xml + "\n"
         "Runtime error: " + error + "\n\n"
         "Current world state after partial execution:\n" + world_state_to_string(state_after) +
-        "\nGenerate a new behavior tree to achieve the original goal from the current world state.";
+        "\nPlan from the CURRENT world state, not from the start. "
+        "If an object is already held, place it -- do NOT pick again. "
+        "If the arm is already at the right table, do not move it again.";
 }

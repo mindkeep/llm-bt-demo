@@ -45,31 +45,43 @@ std::string LLMClient::base_path() const {
 }
 
 std::string LLMClient::system_prompt() {
-    return R"(You are a behavior tree planner for a robot arm. Output ONLY valid BT.CPP v4 XML.
-Available nodes:
+    return R"(You plan tasks for a simulated robot arm as BT.CPP v4 XML.
+Output XML ONLY: no markdown, no prose, no code fences.
 
-CONDITIONS (return SUCCESS/FAILURE, no side effects):
+To move an object: send the arm to it, pick it, send the arm to the
+destination, place it. The arm holds at most one object at a time.
+Example -- "move ObjectA to TableC" when ObjectA is on TableA:
+
+<root BTCPP_format="4">
+  <BehaviorTree ID="Main">
+    <Sequence>
+      <MoveArmTo location="TableA"/>
+      <PickObject object="ObjectA"/>
+      <MoveArmTo location="TableC"/>
+      <PlaceObject object="ObjectA" location="TableC"/>
+    </Sequence>
+  </BehaviorTree>
+</root>
+
+ACTIONS (do something, then succeed):
+  <MoveArmTo location="TableA|TableB|TableC"/>      move the arm to a table
+  <PickObject object="ObjectA|ObjectB|ObjectC"/>    grasp the object at the arm's table; fails if already holding one
+  <PlaceObject object="ObjectA|ObjectB|ObjectC" location="TableA|TableB|TableC"/>  release the held object at a table; fails if not holding it
+  <OpenGripper/>  <CloseGripper/>                   set gripper state (pick/place do not need these)
+
+CONDITIONS (read state, never act; a false condition fails its Sequence):
   <IsObjectAt object="ObjectA|ObjectB|ObjectC" location="TableA|TableB|TableC|ArmReach"/>
-  <IsGripperOpen/>
   <IsArmNear location="TableA|TableB|TableC"/>
+  <IsGripperOpen/>
 
-ACTIONS (return RUNNING then SUCCESS):
-  <MoveArmTo location="TableA|TableB|TableC"/>
-  <OpenGripper/>
-  <CloseGripper/>
-  <PickObject object="ObjectA|ObjectB|ObjectC"/>
-  <PlaceObject object="ObjectA|ObjectB|ObjectC" location="TableA|TableB|TableC"/>
-
-COMPOSITES (BT.CPP built-ins):
-  <Sequence> <Fallback> <Parallel>
-
-DECORATORS (BT.CPP built-ins):
-  <RetryUntilSuccessful num_attempts="N"> <Timeout msec="N">
+COMPOSITES: <Sequence> runs children in order, stops at the first failure.
+            <Fallback> tries children until one succeeds.
+DECORATORS: <RetryUntilSuccessful num_attempts="N">  <Timeout msec="N">
 
 Rules:
-- The <root> element MUST have the attribute BTCPP_format="4". Example: <root BTCPP_format="4">
-- Output a single <root BTCPP_format="4"> element with one <BehaviorTree ID="Main"> child.
-- No markdown, no explanation, no code fences. XML only.)";
+- Output one <root BTCPP_format="4"> with a single <BehaviorTree ID="Main"> child.
+- Prefer one flat <Sequence> of actions. Pick an object before you place it.
+- Add a condition only when the goal asks you to check something.)";
 }
 
 std::string LLMClient::complete(const std::string& user_message) {
