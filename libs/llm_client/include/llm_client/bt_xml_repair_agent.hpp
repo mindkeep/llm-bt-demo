@@ -3,13 +3,11 @@
 #include <string>
 #include "behaviortree_cpp/bt_factory.h"
 #include "llm_client/llm_client.hpp"
-#include "llm_client/bt_xml_validator.hpp"
 #include "llm_client/errors.hpp"
 
 class BTXMLRepairAgent {
 public:
     BTXMLRepairAgent(LLMClient& client,
-                     BTXMLValidator& validator,
                      BT::BehaviorTreeFactory& factory,
                      int max_retries = 3);
 
@@ -18,7 +16,6 @@ public:
 
 private:
     LLMClient& client_;
-    BTXMLValidator& validator_;
     BT::BehaviorTreeFactory& factory_;
     int max_retries_;
 

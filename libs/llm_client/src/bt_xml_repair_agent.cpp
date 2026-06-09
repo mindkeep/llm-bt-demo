@@ -1,10 +1,10 @@
 #include "llm_client/bt_xml_repair_agent.hpp"
+#include "llm_client/bt_xml_validator.hpp"
 
 BTXMLRepairAgent::BTXMLRepairAgent(LLMClient& client,
-                                   BTXMLValidator& validator,
                                    BT::BehaviorTreeFactory& factory,
                                    int max_retries)
-    : client_(client), validator_(validator), factory_(factory), max_retries_(max_retries)
+    : client_(client), factory_(factory), max_retries_(max_retries)
 {}
 
 std::string BTXMLRepairAgent::repair_prompt(
@@ -31,7 +31,7 @@ std::string BTXMLRepairAgent::get_valid_xml(const std::string& goal) {
             : repair_prompt(goal, last_xml, last_errors);
 
         last_xml = client_.complete(user_msg);
-        last_errors = validator_.validate(last_xml, factory_);
+        last_errors = validate_bt_xml(last_xml, factory_);
 
         if (last_errors.empty()) {
             return last_xml;

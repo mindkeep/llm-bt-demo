@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include "bt_task_agent/bt_task_agent.hpp"
 #include "llm_client/llm_client.hpp"
-#include "llm_client/bt_xml_validator.hpp"
 #include "llm_client/bt_xml_repair_agent.hpp"
 #include "bt_nodes/registry.hpp"
 
@@ -67,13 +66,12 @@ class BTTaskAgentTest : public ::testing::Test {
 protected:
     BT::BehaviorTreeFactory factory = make_factory();
     FakeLLMClient fake_llm;
-    BTXMLValidator validator;
     // BTXMLRepairAgent and BTTaskAgent created per-test since they hold references
 };
 
 TEST_F(BTTaskAgentTest, SucceedsOnFirstAttempt) {
     fake_llm.responses = {GOOD_XML};
-    BTXMLRepairAgent repair(fake_llm, validator, factory);
+    BTXMLRepairAgent repair(fake_llm, factory);
     BTTaskAgent agent(repair, factory, /*max_retries=*/3, /*groot2_port=*/0);
 
     WorldState world = make_world();
@@ -85,7 +83,7 @@ TEST_F(BTTaskAgentTest, SucceedsOnFirstAttempt) {
 TEST_F(BTTaskAgentTest, RetriesOnRuntimeErrorAndSucceeds) {
     // First XML throws at runtime; second XML succeeds.
     fake_llm.responses = {THROW_XML, GOOD_XML};
-    BTXMLRepairAgent repair(fake_llm, validator, factory);
+    BTXMLRepairAgent repair(fake_llm, factory);
     BTTaskAgent agent(repair, factory, /*max_retries=*/3, /*groot2_port=*/0);
 
     WorldState world = make_world();
@@ -97,7 +95,7 @@ TEST_F(BTTaskAgentTest, RetriesOnRuntimeErrorAndSucceeds) {
 TEST_F(BTTaskAgentTest, GivesUpAfterMaxRetries) {
     // All attempts throw; with max_retries=3 the loop runs 4 times total.
     fake_llm.responses = {THROW_XML, THROW_XML, THROW_XML, THROW_XML};
-    BTXMLRepairAgent repair(fake_llm, validator, factory);
+    BTXMLRepairAgent repair(fake_llm, factory);
     BTTaskAgent agent(repair, factory, /*max_retries=*/3, /*groot2_port=*/0);
 
     WorldState world = make_world();
@@ -110,7 +108,7 @@ TEST_F(BTTaskAgentTest, RetriesOnXMLErrorAndSucceeds) {
     // BTXMLParseError. BTTaskAgent catches it, feeds the error back to the LLM,
     // and the second attempt returns GOOD_XML.
     fake_llm.responses = {UNKNOWN_NODE_XML, GOOD_XML};
-    BTXMLRepairAgent repair(fake_llm, validator, factory, /*max_retries=*/1);
+    BTXMLRepairAgent repair(fake_llm, factory, /*max_retries=*/1);
     BTTaskAgent agent(repair, factory, /*max_retries=*/3, /*groot2_port=*/0);
 
     WorldState world = make_world();
@@ -122,7 +120,7 @@ TEST_F(BTTaskAgentTest, GivesUpAfterMaxXMLRetries) {
     // All four attempts (initial + 3 retries) produce unrecognised nodes.
     fake_llm.responses = {UNKNOWN_NODE_XML, UNKNOWN_NODE_XML,
                           UNKNOWN_NODE_XML, UNKNOWN_NODE_XML};
-    BTXMLRepairAgent repair(fake_llm, validator, factory, /*max_retries=*/1);
+    BTXMLRepairAgent repair(fake_llm, factory, /*max_retries=*/1);
     BTTaskAgent agent(repair, factory, /*max_retries=*/3, /*groot2_port=*/0);
 
     WorldState world = make_world();
@@ -138,7 +136,7 @@ TEST_F(BTTaskAgentTest, PropagatesLLMConnectionError) {
             throw LLMConnectionError("connection refused");
         }
     } throwing_llm;
-    BTXMLRepairAgent repair(throwing_llm, validator, factory);
+    BTXMLRepairAgent repair(throwing_llm, factory);
     BTTaskAgent agent(repair, factory, /*max_retries=*/3, /*groot2_port=*/0);
 
     WorldState world = make_world();

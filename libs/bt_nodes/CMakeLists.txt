@@ -1,6 +1,7 @@
 add_library(bt_nodes_lib STATIC
-    src/conditions.cpp
-    src/actions.cpp
+    src/arm.cpp
+    src/gripper.cpp
+    src/object.cpp
     src/registry.cpp
 )
 target_include_directories(bt_nodes_lib PUBLIC include)

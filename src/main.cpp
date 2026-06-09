@@ -7,7 +7,6 @@
 #include "world_sim/world_state.hpp"
 #include "world_sim/world_sim.hpp"
 #include "llm_client/llm_client.hpp"
-#include "llm_client/bt_xml_validator.hpp"
 #include "llm_client/bt_xml_repair_agent.hpp"
 #include "bt_task_agent/bt_task_agent.hpp"
 
@@ -49,8 +48,7 @@ int main(int argc, char* argv[]) {
     register_all_nodes(factory);
 
     LLMClient llm;
-    BTXMLValidator validator;
-    BTXMLRepairAgent repair_agent(llm, validator, factory);
+    BTXMLRepairAgent repair_agent(llm, factory);
     BTTaskAgent agent(repair_agent, factory);
 
     if (argc >= 2) {

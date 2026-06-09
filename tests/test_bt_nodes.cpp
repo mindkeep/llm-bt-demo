@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 #include "behaviortree_cpp/bt_factory.h"
-#include "bt_nodes/conditions.hpp"
 #include "bt_nodes/registry.hpp"
 #include "world_sim/world_state.hpp"
 

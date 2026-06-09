@@ -17,25 +17,24 @@ protected:
     }
     BT::BehaviorTreeFactory factory;
     LLMClient llm;
-    BTXMLValidator validator;
 };
 
 TEST_F(LLMIntegrationTest, SimplePickAndPlaceProducesValidXML) {
-    BTXMLRepairAgent agent(llm, validator, factory);
+    BTXMLRepairAgent agent(llm, factory);
     auto xml = agent.get_valid_xml("Pick up object A and move it to location C");
-    auto errors = validator.validate(xml, factory);
+    auto errors = validate_bt_xml(xml, factory);
     EXPECT_TRUE(errors.empty()) << "Validation errors: " << (errors.empty() ? "" : errors.front());
 }
 
 TEST_F(LLMIntegrationTest, StackingGoalProducesValidXML) {
-    BTXMLRepairAgent agent(llm, validator, factory);
+    BTXMLRepairAgent agent(llm, factory);
     auto xml = agent.get_valid_xml("Move object B to TableA then move object C to TableB");
-    auto errors = validator.validate(xml, factory);
+    auto errors = validate_bt_xml(xml, factory);
     EXPECT_TRUE(errors.empty()) << "Validation errors: " << (errors.empty() ? "" : errors.front());
 }
 
 TEST_F(LLMIntegrationTest, GeneratedXMLIsLoadableIntoFactory) {
-    BTXMLRepairAgent agent(llm, validator, factory);
+    BTXMLRepairAgent agent(llm, factory);
     auto xml = agent.get_valid_xml("Pick up object A and place it at TableB");
     EXPECT_NO_THROW({ auto tree = factory.createTreeFromText(xml); (void)tree; });
 }
