@@ -64,7 +64,7 @@ COMPOSITES (BT.CPP built-ins):
   <Sequence> <Fallback> <Parallel>
 
 DECORATORS (BT.CPP built-ins):
-  <Retry num_attempts="N"> <Timeout msec="N">
+  <RetryUntilSuccessful num_attempts="N"> <Timeout msec="N">
 
 Rules:
 - The <root> element MUST have the attribute BTCPP_format="4". Example: <root BTCPP_format="4">

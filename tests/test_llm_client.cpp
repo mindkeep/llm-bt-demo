@@ -56,6 +56,32 @@ TEST(ValidateBTXML, MissingRootElementReturnsError) {
     EXPECT_FALSE(errors.empty());
 }
 
+// Regression: the system prompt must advertise the decorator under the name
+// BT.CPP actually registers. The retry decorator is "RetryUntilSuccessful";
+// a bare "Retry" is not a real node and fails to load.
+TEST(ValidateBTXML, RetryUntilSuccessfulIsTheValidDecoratorName) {
+    auto factory = make_factory();
+    const std::string valid = R"(
+<root BTCPP_format="4">
+  <BehaviorTree ID="Main">
+    <RetryUntilSuccessful num_attempts="3">
+      <MoveArmTo location="TableA"/>
+    </RetryUntilSuccessful>
+  </BehaviorTree>
+</root>)";
+    EXPECT_TRUE(validate_bt_xml(valid, factory).empty());
+
+    const std::string bogus = R"(
+<root BTCPP_format="4">
+  <BehaviorTree ID="Main">
+    <Retry num_attempts="3">
+      <MoveArmTo location="TableA"/>
+    </Retry>
+  </BehaviorTree>
+</root>)";
+    EXPECT_FALSE(validate_bt_xml(bogus, factory).empty());
+}
+
 static const std::string VALID_XML = R"(
 <root BTCPP_format="4">
   <BehaviorTree ID="Main">

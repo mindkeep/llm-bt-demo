@@ -154,13 +154,14 @@ make -C build -j$(nproc)
 ctest --test-dir build -V
 ```
 
-**35 tests** in four suites:
+**42 tests** in five suites:
 
 | Suite | Count | Requires LLM |
 |---|---|---|
 | `WorldState` / `WorldSim` | 13 | No |
 | `Conditions` / `Actions` | 11 | No |
-| `LLMClient` / `BTXMLValidator` / `BTXMLRepairAgent` | 8 | No |
+| `LLMClient` / `BTXMLValidator` / `BTXMLRepairAgent` | 9 | No |
+| `BTTaskAgent` | 6 | No |
 | `LLMIntegration` | 3 | Yes — skipped if `OPENAI_BASE_URL` unset |
 
 To run integration tests with a live model:
@@ -212,4 +213,4 @@ The simulation has no physics — just state transitions:
 |---|---|
 | Conditions | `IsObjectAt`, `IsGripperOpen`, `IsArmNear` |
 | Actions | `MoveArmTo`, `OpenGripper`, `CloseGripper`, `PickObject`, `PlaceObject` |
-| Decorators | `Retry`, `Timeout` (BT.CPP built-ins) |
+| Decorators | `RetryUntilSuccessful`, `Timeout` (BT.CPP built-ins) |
